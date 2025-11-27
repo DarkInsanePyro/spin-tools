@@ -272,7 +272,7 @@ public class SpinCompiler {
                 }
             }
 
-            SpinObject object = compiler.compile(fileToCompile);
+            SpinObject object = compiler.compile(fileToCompile, (File)null);
 
             byte[] binaryData = null;
             if (cmd.hasOption('b')) {

@@ -153,7 +153,7 @@ public abstract class Spin2PasmCompiler extends ObjectCompiler {
                                     int index = 0;
                                     for (Spin2PAsmExpression argument : pasmLine.getArguments()) {
                                         String fileName = argument.getString();
-                                        File includeFile = compiler.getFile(fileName, ".spin2");
+                                        File includeFile = compiler.getFile(fileName, this.file, ".spin2");
                                         RootNode includedNode = compiler.getParsedSource(includeFile);
                                         try {
                                             if (includedNode == null) {
@@ -509,7 +509,7 @@ public abstract class Spin2PasmCompiler extends ObjectCompiler {
     protected abstract void compileDatInclude(RootNode root);
 
     protected byte[] getBinaryFile(String fileName) {
-        return compiler.getBinaryFile(fileName);
+        return compiler.getBinaryFile(fileName, this.file);
     }
 
     List<Spin2PAsmLine> processDittoBlock(Context scope, Context datScope, Context localScope, DataLineNode beginLineNode, List<DataLineNode> list, DataLineNode endLineNode) {

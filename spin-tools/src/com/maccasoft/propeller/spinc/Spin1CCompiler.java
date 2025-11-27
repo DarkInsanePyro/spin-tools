@@ -35,8 +35,8 @@ public class Spin1CCompiler extends Spin1Compiler {
     }
 
     @Override
-    public Spin1Object compile(File file) throws Exception {
-        String text = getSource(file.getAbsolutePath());
+    public Spin1Object compile(File file, File referrer) throws Exception {
+        String text = getSource(file.getAbsolutePath(), referrer);
         if (text == null) {
             throw new FileNotFoundException();
         }

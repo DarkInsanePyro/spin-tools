@@ -1378,7 +1378,7 @@ public class Spin2ObjectCompiler extends Spin2BytecodeCompiler {
             }
             fileName = fileName.substring(0, fileName.length() - 1);
 
-            File file = compiler.getFile(fileName, ".spin2");
+            File file = compiler.getFile(fileName, this.file, ".spin2");
             if (file == null) {
                 logMessage(new CompilerException("object " + fileName + " not found", fileToken));
                 return;

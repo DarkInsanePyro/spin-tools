@@ -28,7 +28,7 @@ import com.maccasoft.propeller.model.TokenIterator;
 public abstract class ObjectCompiler {
 
     ObjectCompiler parent;
-    File file;
+    protected File file;
     protected Context scope;
 
     List<ObjectCompiler> childs = new ArrayList<>();

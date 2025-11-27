@@ -1430,7 +1430,7 @@ class Spin1CompilerTest {
         compiler.setSourceProvider(new SourceProvider() {
 
             @Override
-            public File getFile(String name) {
+            public File getFile(String name, File referrer) {
                 if (sources.containsKey(name)) {
                     return new File(name);
                 }

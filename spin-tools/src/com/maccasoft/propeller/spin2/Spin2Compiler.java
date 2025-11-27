@@ -83,8 +83,8 @@ public class Spin2Compiler extends Compiler {
     }
 
     @Override
-    public Spin2Object compile(File file) throws Exception {
-        String text = getSource(file.getAbsolutePath());
+    public Spin2Object compile(File file, File referrer) throws Exception {
+        String text = getSource(file.getAbsolutePath(), referrer);
         if (text == null) {
             throw new FileNotFoundException();
         }
@@ -277,8 +277,8 @@ public class Spin2Compiler extends Compiler {
         return info;
     }
 
-    public ObjectInfo getObjectInclude(String fileName, Map<String, Expression> parameters) {
-        File objectFile = getFile(fileName, ".c", ".spin2");
+    public ObjectInfo getObjectInclude(String fileName, File referrer, Map<String, Expression> parameters) {
+        File objectFile = getFile(fileName, referrer, ".c", ".spin2");
         if (objectFile != null) {
             RootNode objectRoot = getParsedSource(objectFile);
             if (objectRoot != null) {
@@ -301,8 +301,8 @@ public class Spin2Compiler extends Compiler {
         return null;
     }
 
-    protected byte[] getBinaryFile(String fileName) {
-        return getResource(fileName);
+    protected byte[] getBinaryFile(String fileName, File referrer) {
+        return getResource(fileName, referrer);
     }
 
     protected void logMessage(CompilerException message) {

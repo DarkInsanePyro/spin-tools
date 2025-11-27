@@ -960,7 +960,7 @@ public class Spin1ObjectCompiler extends Spin1BytecodeCompiler {
             }
             fileName = fileName.substring(0, fileName.length() - 1);
 
-            File file = compiler.getFile(fileName, ".spin");
+            File file = compiler.getFile(fileName, this.file, ".spin");
             if (file == null) {
                 logMessage(new CompilerException("object " + fileName + " not found", fileToken));
                 return;

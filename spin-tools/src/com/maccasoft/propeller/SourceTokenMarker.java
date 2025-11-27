@@ -1550,7 +1550,7 @@ public abstract class SourceTokenMarker {
     protected RootNode getObjectTree(String fileName) {
         RootNode root = null;
 
-        File file = sourceProvider.getFile(fileName);
+        File file = sourceProvider.getFile(fileName, null); // TODO: this may need a referrer
         if (file != null) {
             root = cache.get(file);
             if (root == null) {
