@@ -327,7 +327,7 @@ public class Spin2CObjectCompiler extends Spin2CBytecodeCompiler {
 
                 String fileName = token.getText().substring(1, token.getText().length() - 1);
 
-                ObjectInfo info = compiler.getObjectInclude(fileName, Collections.emptyMap());
+                ObjectInfo info = compiler.getObjectInclude(fileName, this.file, Collections.emptyMap());
                 if (info == null) {
                     logMessage(new CompilerException("object " + token + " not found", token));
                     return;
@@ -580,7 +580,7 @@ public class Spin2CObjectCompiler extends Spin2CBytecodeCompiler {
             try {
                 ObjectInfo info = objects.get(typeText);
                 if (info == null) {
-                    File file = compiler.getFile(typeText, ".c", ".spin2");
+                    File file = compiler.getFile(typeText, this.file, ".c", ".spin2");
                     if (file != null) {
                         info = compiler.getObjectInfo(this, file, Collections.emptyMap());
                     }

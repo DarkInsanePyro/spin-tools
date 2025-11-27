@@ -90,10 +90,12 @@ public abstract class Compiler {
         public FileSourceProvider(File[] searchPaths) {
             this.searchPaths = searchPaths;
             this.collectedSearchPaths = new ArrayList<>();
+
+            System.out.println("FileSourceProvider::Constructor");
         }
 
         @Override
-        public File getFile(String name) {
+        public File getFile(String name, File referrer) {
             File localFile = new File(name);
             if (localFile.exists()) {
                 File parent = localFile.getParentFile();
@@ -200,7 +202,7 @@ public abstract class Compiler {
 
     }
 
-    public abstract SpinObject compile(File file) throws Exception;
+    public abstract SpinObject compile(File file, File referrer) throws Exception;
 
     public abstract SpinObject compile(File rootFile, RootNode root);
 
@@ -216,16 +218,16 @@ public abstract class Compiler {
         return Collections.emptyList();
     }
 
-    public File getFile(String name, String... extensions) {
+    public File getFile(String name, File referrer, String... extensions) {
         if (sourceProvider != null) {
             for (String suffix : extensions) {
-                File file = sourceProvider.getFile(name + suffix);
+                File file = sourceProvider.getFile(name + suffix, referrer);
                 if (file != null) {
                     return file;
                 }
             }
 
-            File file = sourceProvider.getFile(name);
+            File file = sourceProvider.getFile(name, referrer);
             if (file != null) {
                 return file;
             }
@@ -244,9 +246,9 @@ public abstract class Compiler {
         return null;
     }
 
-    protected String getSource(String name) {
+    protected String getSource(String name, File referrer) {
         if (sourceProvider != null) {
-            File file = sourceProvider.getFile(name);
+            File file = sourceProvider.getFile(name, referrer);
             if (file != null) {
                 try {
                     return FileUtils.loadFromFile(file);
@@ -259,9 +261,9 @@ public abstract class Compiler {
         return null;
     }
 
-    protected byte[] getResource(String name) {
+    protected byte[] getResource(String name, File referrer) {
         if (sourceProvider != null) {
-            File file = sourceProvider.getFile(name);
+            File file = sourceProvider.getFile(name, referrer);
             if (file != null) {
                 try {
                     return FileUtils.loadBinaryFromFile(file);

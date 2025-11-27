@@ -141,7 +141,7 @@ public abstract class Spin1PAsmCompiler extends ObjectCompiler {
                                     int index = 0;
                                     for (Spin1PAsmExpression argument : pasmLine.getArguments()) {
                                         String fileName = argument.getString();
-                                        File includeFile = compiler.getFile(fileName, ".spin");
+                                        File includeFile = compiler.getFile(fileName, this.file, ".spin");
                                         RootNode includedNode = compiler.getParsedSource(includeFile);
                                         try {
                                             if (includedNode == null) {
@@ -357,7 +357,7 @@ public abstract class Spin1PAsmCompiler extends ObjectCompiler {
     protected abstract void compileDatInclude(RootNode root);
 
     protected byte[] getBinaryFile(String fileName) {
-        return compiler.getBinaryFile(fileName);
+        return compiler.getBinaryFile(fileName, this.file);
     }
 
     void processDittoBlock(Context globalScope, Context localScope, DataLineNode beginLineNode, List<DataLineNode> list, DataLineNode endLineNode) {

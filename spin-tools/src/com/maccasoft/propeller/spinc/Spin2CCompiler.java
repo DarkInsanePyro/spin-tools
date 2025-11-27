@@ -39,8 +39,8 @@ public class Spin2CCompiler extends Spin2Compiler {
     }
 
     @Override
-    public Spin2Object compile(File file) throws Exception {
-        String text = getSource(file.getAbsolutePath());
+    public Spin2Object compile(File file, File referrer) throws Exception {
+        String text = getSource(file.getAbsolutePath(), referrer);
         if (text == null) {
             throw new FileNotFoundException();
         }

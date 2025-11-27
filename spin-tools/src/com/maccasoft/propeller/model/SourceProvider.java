@@ -24,7 +24,7 @@ public abstract class SourceProvider {
         }
 
         @Override
-        public File getFile(String name) {
+        public File getFile(String name, File referrer) {
             return null;
         }
 
@@ -55,6 +55,6 @@ public abstract class SourceProvider {
         return null;
     }
 
-    public abstract File getFile(String name);
+    public abstract File getFile(String name, File referrer);
 
 }

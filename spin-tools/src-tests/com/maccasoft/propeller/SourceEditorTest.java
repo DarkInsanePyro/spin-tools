@@ -800,7 +800,7 @@ public class SourceEditorTest {
         subject.setTokenMarker(new Spin2TokenMarker(new SourceProvider() {
 
             @Override
-            public File getFile(String name) {
+            public File getFile(String name, File referrer) {
                 return new File(name);
             }
 
@@ -856,7 +856,7 @@ public class SourceEditorTest {
         subject.setTokenMarker(new Spin1TokenMarker(new SourceProvider() {
 
             @Override
-            public File getFile(String name) {
+            public File getFile(String name, File referrer) {
                 return new File(name);
             }
 
@@ -945,7 +945,7 @@ public class SourceEditorTest {
         subject.setTokenMarker(new Spin2TokenMarker(new SourceProvider() {
 
             @Override
-            public File getFile(String name) {
+            public File getFile(String name, File referrer) {
                 return new File(name);
             }
 
@@ -991,7 +991,7 @@ public class SourceEditorTest {
         subject.setTokenMarker(new Spin1TokenMarker(new SourceProvider() {
 
             @Override
-            public File getFile(String name) {
+            public File getFile(String name, File referrer) {
                 return new File(name);
             }
 

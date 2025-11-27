@@ -400,6 +400,8 @@ public class EditorTab implements FindReplaceTarget {
 
         public EditorTabSourceProvider(File[] searchPaths) {
             this.searchPaths = searchPaths;
+
+            System.out.println("EditorTableSourceProvider::Constructor");
         }
 
         @Override
@@ -412,12 +414,20 @@ public class EditorTab implements FindReplaceTarget {
         }
 
         @Override
-        public File getFile(String name) {
+        public File getFile(String name, File referrer) {
             File localFile = file != null ? new File(file.getParentFile(), name) : new File(name).getAbsoluteFile();
 
             if (localFile.exists()) {
                 dependencies.put(localFile, localFile.lastModified());
                 return localFile;
+            }
+
+            if (referrer != null) {
+                File referredPathFile = new File(referrer.getParentFile(), name);
+                if (referredPathFile.exists()) {
+                    dependencies.put(referredPathFile.getAbsoluteFile(), referredPathFile.lastModified());
+                    return referredPathFile;
+                }
             }
 
             for (File searchPath : searchPaths) {
