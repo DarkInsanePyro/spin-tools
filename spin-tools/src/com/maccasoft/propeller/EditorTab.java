@@ -424,11 +424,13 @@ public class EditorTab implements FindReplaceTarget {
             }
 
             // second: search for the file located adjacent to the top file
+            /*
             File localFile = file != null ? new File(file.getParentFile(), name) : new File(name).getAbsoluteFile();
             if (localFile.exists()) {
                 dependencies.put(localFile, localFile.lastModified());
                 return localFile;
             }
+            */
 
             // third: search in the search paths provided
             for (File searchPath : searchPaths) {
@@ -439,7 +441,7 @@ public class EditorTab implements FindReplaceTarget {
                 }
             }
             
-            dependencies.put(localFile, 0L);
+            // dependencies.put(localFile, 0L);
             return null;
         }
 
