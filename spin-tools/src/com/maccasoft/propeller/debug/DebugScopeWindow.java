@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-25 Marco Maccaferri and others.
+ * Copyright (c) 2021-26 Marco Maccaferri and others.
  * All rights reserved.
  *
  * This program and the accompanying materials are made available under
@@ -88,7 +88,7 @@ public class DebugScopeWindow extends DebugWindow {
         int legendMaxY;
         String legendMin;
         int legendMinY;
-        int[] array;
+        int[] linePoints;
 
         Channel(String name, int min, int max, boolean auto, int y_size, int y_base, int legend, Color color) {
             this.name = name;
@@ -110,21 +110,22 @@ public class DebugScopeWindow extends DebugWindow {
                 legendMaxY = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base) - (int) Math.round((max - min) * sy);
 
                 legendMin = String.format("%c%d", min >= 0 ? '+' : '-', Math.abs(min));
-                legendMinY = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base) - (int) Math.round((min - min) * sy);
+                legendMinY = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base);
             }
 
             this.sampleData = new int[samples];
-            this.array = new int[sampleData.length * 2];
+            this.linePoints = new int[0];
         }
 
         void update() {
             double sx = (double) imageSize.x / (double) samples;
             double sy = (double) y_size / (double) (max - min);
+            int firstSample = sampleData.length - sampleCount;
 
             if (auto) {
                 min = Integer.MAX_VALUE;
                 max = Integer.MIN_VALUE;
-                for (int i = 0; i < sampleData.length; i++) {
+                for (int i = firstSample; i < sampleData.length; i++) {
                     int d = sampleData[i];
                     if (d < min) {
                         min = d;
@@ -139,14 +140,19 @@ public class DebugScopeWindow extends DebugWindow {
                     legendMaxY = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base) - (int) Math.round((max - min) * sy);
 
                     legendMin = String.format("%c%d", min >= 0 ? '+' : '-', Math.abs(min));
-                    legendMinY = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base) - (int) Math.round((min - min) * sy);
+                    legendMinY = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base);
                 }
             }
 
-            double x = 0;
-            for (int i = 0, idx = 0; i < sampleData.length; i++) {
-                array[idx++] = MARGIN_WIDTH + (int) Math.round(x);
-                array[idx++] = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base) - (int) Math.round((sampleData[i] - min) * sy);
+            int arraySize = (sampleData.length - firstSample) * 2;
+            if (linePoints.length != arraySize) {
+                linePoints = new int[arraySize];
+            }
+
+            double x = firstSample * sx;
+            for (int i = firstSample, idx = 0; i < sampleData.length; i++) {
+                linePoints[idx++] = MARGIN_WIDTH + (int) Math.round(x);
+                linePoints[idx++] = MARGIN_HEIGHT + charHeight + (imageSize.y - y_base) - (int) Math.round((sampleData[i] - min) * sy);
                 x += sx;
             }
         }
@@ -162,7 +168,7 @@ public class DebugScopeWindow extends DebugWindow {
                 if ((legend & 0b0001) != 0) {
                     gc.drawLine(MARGIN_WIDTH, legendMinY, imageSize.x, legendMinY);
                 }
-                if ((legend & 0b0001) != 0) {
+                if ((legend & 0b0010) != 0) {
                     gc.drawLine(MARGIN_WIDTH, legendMaxY, imageSize.x, legendMaxY);
                 }
 
@@ -178,12 +184,10 @@ public class DebugScopeWindow extends DebugWindow {
                 }
             }
 
-            gc.setLineWidth(dotSize);
-            gc.setLineStyle(SWT.LINE_SOLID);
-
-            gc.setForeground(color);
             gc.setLineWidth(lineSize);
-            gc.drawPolyline(array);
+            gc.setLineStyle(SWT.LINE_SOLID);
+            gc.setForeground(color);
+            gc.drawPolyline(linePoints);
         }
 
     }
@@ -533,10 +537,11 @@ public class DebugScopeWindow extends DebugWindow {
             if (sampleCount < samples) {
                 sampleCount++;
             }
-            else {
-                triggered = false;
 
-                if (triggerChannel >= 0) {
+            triggered = false;
+
+            if (triggerChannel >= 0) {
+                if (sampleCount >= samples) {
                     sample = channelData[triggerChannel].sampleData[(triggerOffset - 1) % samples];
                     if (armed) {
                         if (triggerFire >= triggerArm) {
@@ -577,12 +582,12 @@ public class DebugScopeWindow extends DebugWindow {
                         holdOffCount = holdOff;
                     }
                 }
-                else {
-                    rateCount++;
-                    if (rateCount >= rate) {
-                        update();
-                        rateCount = 0;
-                    }
+            }
+            else {
+                rateCount++;
+                if (rateCount >= rate) {
+                    update();
+                    rateCount = 0;
                 }
             }
 

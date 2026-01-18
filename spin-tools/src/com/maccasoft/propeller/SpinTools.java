@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2021-2025 Marco Maccaferri and others.
+ * Copyright (c) 2021-26 Marco Maccaferri and others.
  * All rights reserved.
  *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License v1.0 which accompanies this
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
+ * distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  */
 
 package com.maccasoft.propeller;
@@ -120,7 +121,7 @@ import com.maccasoft.propeller.spinc.CTokenMarker;
 public class SpinTools {
 
     public static final String APP_TITLE = "Spin Tools IDE";
-    public static final String APP_VERSION = "0.51.0";
+    public static final String APP_VERSION = "0.52.1";
 
     static final File defaultSpin1Examples = new File(System.getProperty("APP_DIR"), "examples/P1").getAbsoluteFile();
     static final File defaultSpin2Examples = new File(System.getProperty("APP_DIR"), "examples/P2").getAbsoluteFile();
@@ -185,17 +186,13 @@ public class SpinTools {
         public void open(OpenEvent event) {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 
-            if (selection.getFirstElement() instanceof File) {
-                File fileToOpen = (File) selection.getFirstElement();
+            if (selection.getFirstElement() instanceof File fileToOpen) {
                 if (fileToOpen.isDirectory()) {
                     return;
                 }
                 String name = fileToOpen.getName().toLowerCase();
                 if (name.endsWith(".spin") || name.endsWith(".pasm") || name.endsWith(".spin2") || name.endsWith(".p2asm") || name.endsWith(".c")) {
-                    EditorTab editorTab = findFileEditorTab(fileToOpen);
-                    if (editorTab == null) {
-                        openNewTab(fileToOpen);
-                    }
+                    openOrSwitchToTab(fileToOpen);
                 }
                 else if (name.endsWith(".json")) {
                     FirmwarePackDialog dlg = new FirmwarePackDialog(shell, preferences);
@@ -205,33 +202,24 @@ public class SpinTools {
                     Program.launch(fileToOpen.getAbsolutePath());
                 }
             }
-            else if (selection.getFirstElement() instanceof ObjectTree) {
-                File fileToOpen = ((ObjectTree) selection.getFirstElement()).getFile();
+            else if (selection.getFirstElement() instanceof ObjectTree objectTree) {
+                File fileToOpen = objectTree.getFile();
                 if (fileToOpen.isDirectory()) {
                     return;
                 }
                 String name = fileToOpen.getName().toLowerCase();
                 if (name.endsWith(".spin") || name.endsWith(".spin2")) {
-                    EditorTab editorTab = findFileEditorTab(fileToOpen);
-                    if (editorTab == null) {
-                        openNewTab(fileToOpen);
-                    }
+                    openOrSwitchToTab(fileToOpen);
                 }
             }
-            else if (selection.getFirstElement() instanceof ObjectNode) {
-                if (openOrSwitchToTab(((ObjectNode) selection.getFirstElement()).getFileName()) == null) {
-                    return;
-                }
+            else if (selection.getFirstElement() instanceof ObjectNode node) {
+                openOrSwitchToTab(node.getFileName());
             }
-            else if (selection.getFirstElement() instanceof DirectiveNode.IncludeNode) {
-                if (openOrSwitchToTab(((DirectiveNode.IncludeNode) selection.getFirstElement()).getFileName()) == null) {
-                    return;
-                }
+            else if (selection.getFirstElement() instanceof DirectiveNode.IncludeNode node) {
+                openOrSwitchToTab(node.getFileName());
             }
-            else if (selection.getFirstElement() instanceof VariableNode) {
-                if (openOrSwitchToTab(((VariableNode) selection.getFirstElement()).getType().getText()) == null) {
-                    return;
-                }
+            else if (selection.getFirstElement() instanceof VariableNode node) {
+                openOrSwitchToTab(node.getType().getText());
             }
         }
 
@@ -528,10 +516,7 @@ public class SpinTools {
                         String name = fileToOpen.getName().toLowerCase();
                         if (name.endsWith(".spin") || name.endsWith(".p1asm") || name.endsWith(".spin2") || name.endsWith(".p2asm")) {
                             if (fileToOpen.exists()) {
-                                EditorTab editorTab = findFileEditorTab(fileToOpen);
-                                if (editorTab == null) {
-                                    editorTab = openNewTab(fileToOpen);
-                                }
+                                EditorTab editorTab = openOrSwitchToTab(fileToOpen);
                                 if (selection == null) {
                                     selection = editorTab.getTabItem();
                                 }
@@ -540,6 +525,7 @@ public class SpinTools {
                     }
                     if (selection != null) {
                         tabFolder.setSelection(selection);
+                        tabFolder.notifyListeners(SWT.Selection, new Event());
                     }
                 }
                 else {
@@ -658,11 +644,7 @@ public class SpinTools {
             String name = fileToOpen.getName().toLowerCase();
             if (name.endsWith(".spin") || name.endsWith(".p1asm") || name.endsWith(".spin2") || name.endsWith(".p2asm")) {
                 if (fileToOpen.exists()) {
-                    EditorTab editorTab = findFileEditorTab(fileToOpen);
-                    if (editorTab == null) {
-                        editorTab = openNewTab(fileToOpen);
-                    }
-                    tabFolder.setSelection(editorTab.getTabItem());
+                    openOrSwitchToTab(fileToOpen);
                     shell.setActive();
                 }
             }
@@ -1260,11 +1242,7 @@ public class SpinTools {
                         handleFileOpenFrom(parentFile != null ? parentFile.getAbsolutePath() : "");
                         return;
                     }
-                    EditorTab editorTab = findFileEditorTab(fileToOpen);
-                    if (editorTab == null) {
-                        editorTab = openNewTab(fileToOpen);
-                    }
-                    tabFolder.setSelection(editorTab.getTabItem());
+                    openOrSwitchToTab(fileToOpen);
                 }
             });
             list.add(item);
@@ -1527,11 +1505,8 @@ public class SpinTools {
                     SourceLocation currentLocation = getCurrentSourceLocation();
 
                     SourceLocation location = backStack.pop();
-                    EditorTab editorTab = findFileEditorTab(location.file);
-                    if (editorTab == null && location.file != null) {
-                        editorTab = openNewTab(location.file);
-                    }
-                    if (editorTab != null) {
+                    if (location.file != null) {
+                        EditorTab editorTab = openOrSwitchToTab(location.file);
                         if (currentLocation != null) {
                             forwardStack.push(currentLocation);
                         }
@@ -1570,11 +1545,8 @@ public class SpinTools {
                     SourceLocation currentLocation = getCurrentSourceLocation();
 
                     SourceLocation location = forwardStack.pop();
-                    EditorTab editorTab = findFileEditorTab(location.file);
-                    if (editorTab == null && location.file != null) {
-                        editorTab = openNewTab(location.file);
-                    }
-                    if (editorTab != null) {
+                    if (location.file != null) {
+                        EditorTab editorTab = openOrSwitchToTab(location.file);
                         if (currentLocation != null) {
                             backStack.push(currentLocation);
                         }
@@ -1806,11 +1778,7 @@ public class SpinTools {
         String fileName = dlg.open();
         if (fileName != null) {
             File fileToOpen = new File(fileName);
-            EditorTab editorTab = findFileEditorTab(fileToOpen);
-            if (editorTab == null) {
-                editorTab = openNewTab(new File(fileName));
-            }
-            tabFolder.setSelection(editorTab.getTabItem());
+            openOrSwitchToTab(fileToOpen);
         }
     }
 
@@ -1828,11 +1796,7 @@ public class SpinTools {
         String fileName = dlg.open();
         if (fileName != null) {
             File fileToOpen = new File(fileName);
-            EditorTab editorTab = findFileEditorTab(fileToOpen);
-            if (editorTab == null) {
-                editorTab = openNewTab(new File(fileName));
-            }
-            tabFolder.setSelection(editorTab.getTabItem());
+            openOrSwitchToTab(fileToOpen);
         }
     }
 
@@ -1904,11 +1868,7 @@ public class SpinTools {
         }
 
         if (fileToOpen.exists() && !fileToOpen.isDirectory()) {
-            EditorTab editorTab = findFileEditorTab(fileToOpen);
-            if (editorTab == null) {
-                editorTab = openNewTab(fileToOpen);
-            }
-            return editorTab;
+            return openOrSwitchToTab(fileToOpen);
         }
 
         return null;
@@ -1920,7 +1880,8 @@ public class SpinTools {
 
         tabFolder.getDisplay().asyncExec(() -> {
             try {
-                tabFolder.setSelection(tabFolder.getItemCount() - 1);
+                tabFolder.setSelection(editorTab.getTabItem());
+
                 editorTab.setEditorText(FileUtils.loadFromFile(fileToOpen));
 
                 LruData lruData = preferences.getLruData(fileToOpen);
@@ -1933,8 +1894,7 @@ public class SpinTools {
                 }
                 preferences.addToLru(fileToOpen);
 
-                updateEditorSelection();
-                updateCaretPosition();
+                tabFolder.notifyListeners(SWT.Selection, new Event());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -2198,11 +2158,13 @@ public class SpinTools {
             @Override
             public void run() {
                 try {
-                    tabFolder.setSelection(tabFolder.getItemCount() - 1);
+                    tabFolder.setSelection(editorTab.getTabItem());
+                    tabFolder.notifyListeners(SWT.Selection, new Event());
+
                     outlineViewStack.setTopView(editorTab.getOutlineView());
+
                     editorTab.setEditorText(text);
                     editorTab.setFocus();
-                    updateCaretPosition();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -2452,19 +2414,18 @@ public class SpinTools {
         }
     }
 
-    EditorTab findFileEditorTab(File file) {
-        for (int i = 0; i < tabFolder.getItemCount(); i++) {
-            EditorTab editorTab = (EditorTab) tabFolder.getItem(i).getData();
-
+    EditorTab openOrSwitchToTab(File fileToOpen) {
+        for (CTabItem tabItem : tabFolder.getItems()) {
+            EditorTab editorTab = (EditorTab) tabItem.getData();
             File localFile = editorTab.getFile() != null ? editorTab.getFile() : new File(editorTab.getText());
-            if (localFile.equals(file)) {
-                tabFolder.setSelection(i);
+            if (localFile.equals(fileToOpen)) {
+                tabFolder.setSelection(tabItem);
+                tabFolder.notifyListeners(SWT.Selection, new Event());
                 editorTab.setFocus();
-                updateCaretPosition();
                 return editorTab;
             }
         }
-        return null;
+        return openNewTab(fileToOpen);
     }
 
     Menu createEditMenu(Menu parent) {
@@ -3698,6 +3659,7 @@ public class SpinTools {
                         @Override
                         public void handleEvent(Event e) {
                             tabFolder.setSelection(tabItem);
+                            tabFolder.notifyListeners(SWT.Selection, new Event());
                             tabItem.getControl().setFocus();
                         }
                     });
@@ -3780,11 +3742,14 @@ public class SpinTools {
             fileBrowser.setVisiblePaths(preferences.getRoots());
             fileBrowser.setExpandedPaths(preferences.getExpandedPaths());
             if (selection != null) {
-                EditorTab editorTab = findFileEditorTab(selection);
-                if (editorTab != null) {
-                    tabFolder.setSelection(editorTab.getTabItem());
-                    updateEditorSelection();
-                    updateCaretPosition();
+                for (CTabItem tabItem : tabFolder.getItems()) {
+                    EditorTab editorTab = (EditorTab) tabItem.getData();
+                    File localFile = editorTab.getFile() != null ? editorTab.getFile() : new File(editorTab.getText());
+                    if (localFile.equals(selection)) {
+                        tabFolder.setSelection(tabItem);
+                        tabFolder.notifyListeners(SWT.Selection, new Event());
+                        editorTab.setFocus();
+                    }
                 }
             }
             File lastPath = preferences.getLastPath();
@@ -3804,8 +3769,7 @@ public class SpinTools {
             index = 0;
         }
         tabFolder.setSelection(index);
-        updateEditorSelection();
-        updateCaretPosition();
+        tabFolder.notifyListeners(SWT.Selection, new Event());
     }
 
     private void handlePreviousTab() {
@@ -3818,8 +3782,7 @@ public class SpinTools {
             index = tabFolder.getItemCount() - 1;
         }
         tabFolder.setSelection(index);
-        updateEditorSelection();
-        updateCaretPosition();
+        tabFolder.notifyListeners(SWT.Selection, new Event());
     }
 
     private void handleSetTopObject() {
@@ -4049,7 +4012,7 @@ public class SpinTools {
     }
 
     static {
-        Display.setAppName("maccasoft-spintoolside");
+        Display.setAppName("cocoa".equals(SWT.getPlatform()) ? APP_TITLE : "maccasoft-spintoolside");
         Display.setAppVersion(APP_VERSION);
     }
 
